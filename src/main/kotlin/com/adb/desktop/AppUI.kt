@@ -1,3 +1,5 @@
+package com.adb.desktop
+
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -8,29 +10,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.adb.desktop.Adb
-import com.adb.desktop.AdbDevice
-import com.adb.desktop.AdbDevicePoller
-import com.adb.desktop.Terminal
-import kotlinx.coroutines.GlobalScope
 
 val adb = Adb(Terminal())
-val adbDeviceManager = AdbDevicePoller(adb)
+
+@Composable
+fun rememberAdbDeviceManager(): AdbDevicePoller {
+
+    val coroutineScope = rememberCoroutineScope()
+    return AdbDevicePoller(adb, coroutineScope)
+}
 
 @Composable
 fun BuildAppUI() {
     Column {
+        val adbDevicePoller = rememberAdbDeviceManager()
+
         TopAppBar(
             title = { Text("adb desktop") },
         )
         var refresh by remember { mutableStateOf(emptyList<AdbDevice>()) }
-        adbDeviceManager.poll(GlobalScope) {
+        adbDevicePoller.poll {
             refresh = it
         }
 
         ScrollableColumn {
             for (deviceId in refresh) {
-                buildAdbDeviceCard(deviceId)
+                buildAdbDeviceCard(adbDevicePoller, deviceId)
             }
         }
     }
@@ -38,7 +43,7 @@ fun BuildAppUI() {
 }
 
 @Composable
-fun buildAdbDeviceCard(adbDevice: AdbDevice) {
+fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
     println("buildAdbDeviceCard $adbDevice")
 
     Card(
@@ -54,14 +59,14 @@ fun buildAdbDeviceCard(adbDevice: AdbDevice) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            adbDeviceRow(adbDevice)
+            adbDeviceRow(adbDevicePoller, adbDevice)
         }
     }
 
 }
 
 @Composable
-fun adbDeviceRow(adbDevice: AdbDevice) {
+fun adbDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
     Text(
         text = adbDevice.deviceId,
         modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp)
@@ -72,7 +77,7 @@ fun adbDeviceRow(adbDevice: AdbDevice) {
         Button(
             modifier = Modifier.padding(8.dp)
                 .width(180.dp),
-            onClick = { adbDeviceManager.disconnect(adbDevice) }
+            onClick = { adbDevicePoller.disconnect(adbDevice) }
         ) {
             Text("disconnect wifi")
         }
@@ -80,7 +85,7 @@ fun adbDeviceRow(adbDevice: AdbDevice) {
         Button(
             modifier = Modifier.padding(8.dp)
                 .width(180.dp),
-            onClick = { adbDeviceManager.connect(adbDevice) }
+            onClick = { adbDevicePoller.connect(adbDevice) }
         ) {
             Text("connect wifi")
         }

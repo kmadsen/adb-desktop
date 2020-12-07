@@ -3,7 +3,7 @@ package com.adb.desktop
 class Adb(
     private val terminal: Terminal
 ) {
-    fun version(): String {
+    suspend fun version(): String {
         val cmd = "adb --version"
         val result = terminal.run(cmd)
 
@@ -17,7 +17,7 @@ class Adb(
         return "$major.$minor.$release"
     }
 
-    fun devices(): List<String> {
+    suspend fun devices(): List<String> {
         val cmd = "adb devices"
         val result = terminal.run(cmd)
 
@@ -38,7 +38,7 @@ class Adb(
         return AdbWifiState(true, ipAddress, port)
     }
 
-    fun wifiState(deviceId: String): AdbWifiState {
+    suspend fun wifiState(deviceId: String): AdbWifiState {
         val checkConnected = isConnected(deviceId)
         if (checkConnected != null) return checkConnected
 
@@ -55,7 +55,7 @@ class Adb(
         return AdbWifiState(false, ipAddress, null)
     }
 
-    fun connect(deviceId: String, ipAddress: String): AdbWifiState {
+    suspend fun connect(deviceId: String, ipAddress: String): AdbWifiState {
         val port = "5555"
         val commandSetPort = "adb -s $deviceId tcpip $port"
         terminal.run(commandSetPort)
@@ -69,7 +69,7 @@ class Adb(
         )
     }
 
-    fun disconnect(adbDevice: AdbDevice) {
+    suspend fun disconnect(adbDevice: AdbDevice) {
         val address = "${adbDevice.adbWifiState.ipAddress}:${adbDevice.adbWifiState.port}"
         val cmd = "adb disconnect $address"
         val result = terminal.run(cmd)
