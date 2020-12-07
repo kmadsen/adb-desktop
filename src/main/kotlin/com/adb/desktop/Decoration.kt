@@ -1,7 +1,10 @@
+package com.adb.desktop
+
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
 private var icon: BufferedImage? = null
+
 fun icAppRounded(): BufferedImage {
     if (icon != null) {
         return icon!!

@@ -1,11 +1,13 @@
 package com.adb.desktop
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.InputStream
 
 class Terminal {
     private val runtime = Runtime.getRuntime()
 
-    fun run(command: String): List<String> {
+    suspend fun run(command: String): List<String> = withContext(Dispatchers.IO) {
         val process = runtime.exec(command)
 
         fun InputStream.readLines() = bufferedReader()
@@ -13,11 +15,11 @@ class Terminal {
             .map { it.trim() }
 
         val errors = process.errorStream.readLines()
-        if (errors.isNotEmpty()) {
+        return@withContext if (errors.isNotEmpty()) {
             println("$command failed: $errors")
-            return emptyList()
+            emptyList()
+        } else {
+            process.inputStream.readLines()
         }
-
-        return process.inputStream.readLines()
     }
 }
