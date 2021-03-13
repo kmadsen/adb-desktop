@@ -22,7 +22,7 @@ class Adb(
         val result = terminal.run(cmd)
 
         val regex = """(.+)(device)""".toRegex()
-        check(result[0] == "List of devices attached", )
+        check(result[0] == "List of devices attached")
         return result
             .filter(String::isNotEmpty)
             .drop(1)

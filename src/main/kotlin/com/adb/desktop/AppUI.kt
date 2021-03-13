@@ -15,42 +15,72 @@ val adb = Adb(Terminal())
 
 @Composable
 fun rememberAdbDeviceManager(): AdbDevicePoller {
-
     val coroutineScope = rememberCoroutineScope()
     return AdbDevicePoller(adb, coroutineScope)
 }
 
 @Composable
-fun BuildAppUI() {
+fun buildAppUI() {
     Column {
         val adbDevicePoller = rememberAdbDeviceManager()
 
         TopAppBar(
-            title = { Text("adb desktop") },
+            title = { Text("adb desktop") }
         )
         var refresh by remember { mutableStateOf(emptyList<AdbDevice>()) }
         adbDevicePoller.poll {
             refresh = it
         }
 
-        ScrollableColumn {
-            for (deviceId in refresh) {
-                buildAdbDeviceCard(adbDevicePoller, deviceId)
+        Row {
+            ScrollableColumn(
+                modifier = Modifier.width(300.dp)
+            ) {
+                Text(
+                    text = "Devices",
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+                refresh.ifEmpty {
+                    buildEmptyDeviceCard()
+                    null
+                }?.forEach { deviceId ->
+                    buildAdbDeviceCard(adbDevicePoller, deviceId)
+                }
             }
+
+            // TODO add the main page here
         }
     }
-
 }
 
 @Composable
-fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
-    println("buildAdbDeviceCard $adbDevice")
-
+fun buildEmptyDeviceCard() {
     Card(
         elevation = 4.dp,
         modifier = Modifier
             .padding(4.dp)
-            .width(450.dp)
+            .fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .height(50.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("No devices detected")
+        }
+    }
+}
+
+@Composable
+fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
+    Card(
+        elevation = 4.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
     ) {
         Row(
             modifier = Modifier
@@ -62,32 +92,30 @@ fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
             adbDeviceRow(adbDevicePoller, adbDevice)
         }
     }
-
 }
 
 @Composable
 fun adbDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
-    Text(
-        text = adbDevice.deviceId,
-        modifier = Modifier.padding(start = 8.dp, top = 8.dp, end = 8.dp)
-            .width(200.dp)
-    )
+    Text(text = adbDevice.deviceId)
     val wifiState = adbDevice.adbWifiState
-    if (wifiState.connected) {
-        Button(
-            modifier = Modifier.padding(8.dp)
-                .width(180.dp),
-            onClick = { adbDevicePoller.disconnect(adbDevice) }
-        ) {
-            Text("disconnect wifi")
-        }
-    } else if (wifiState.ipAddress != null) {
-        Button(
-            modifier = Modifier.padding(8.dp)
-                .width(180.dp),
-            onClick = { adbDevicePoller.connect(adbDevice) }
-        ) {
-            Text("connect wifi")
+    Column(
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        if (wifiState.connected) {
+            Button(
+                onClick = { adbDevicePoller.disconnect(adbDevice) }
+            ) {
+                Text("disconnect wifi")
+            }
+        } else if (wifiState.ipAddress != null) {
+            Button(
+                onClick = { adbDevicePoller.connect(adbDevice) }
+            ) {
+                Text("connect wifi")
+            }
         }
     }
 }

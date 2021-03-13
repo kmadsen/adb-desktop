@@ -10,7 +10,7 @@ fun main() = Window(
 ) {
     MaterialTheme {
         DesktopTheme {
-            BuildAppUI()
+            buildAppUI()
         }
     }
 }
