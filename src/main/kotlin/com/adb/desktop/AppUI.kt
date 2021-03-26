@@ -1,14 +1,18 @@
 package com.adb.desktop
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 
 val adb = Adb(Terminal())
@@ -34,7 +38,7 @@ fun buildAppUI() {
 
         Row {
             ScrollableColumn(
-                modifier = Modifier.width(300.dp)
+                modifier = Modifier.width(400.dp)
             ) {
                 Text(
                     text = "Devices",
@@ -50,8 +54,45 @@ fun buildAppUI() {
                 }
             }
 
-            // TODO add the main page here
+            buildSurface()
         }
+    }
+}
+
+@Composable
+fun buildSurface() {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        shape = RoundedCornerShape(10f),
+        color = Color.Yellow,
+        contentColor = Color.Green,
+        border = BorderStroke(8.dp, Color.Black),
+        elevation = 4.dp,
+        content = {
+            buildCanvas()
+        }
+    )
+}
+
+@Composable
+fun buildCanvas() {
+    Canvas(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)
+    ) {
+        drawLine(
+            color = Color.Black,
+            start = Offset(0.0f, 0.0f),
+            end = Offset(600f, 600f),
+            strokeWidth = 50.0f,
+            cap = StrokeCap.Butt,
+            pathEffect = null,
+            alpha = 1.0f,
+            colorFilter = null,
+            blendMode = BlendMode.Color
+        )
     }
 }
 
