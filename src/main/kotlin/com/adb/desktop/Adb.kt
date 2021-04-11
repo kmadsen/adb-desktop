@@ -75,6 +75,27 @@ class Adb(
         val result = terminal.run(cmd)
         println(result)
     }
+
+    suspend fun listAvds(): List<AndroidVirtualDevice> {
+        val androidHome = System.getenv()["ANDROID_HOME"]
+        val cmd = "$androidHome/emulator/emulator -list-avds"
+        val result = terminal.run(cmd)
+        println(result.joinToString())
+        return result.map { name -> AndroidVirtualDevice(name) }
+    }
+
+    suspend fun start(avd: AndroidVirtualDevice) {
+        val androidHome = System.getenv()["ANDROID_HOME"]
+        val cmd = "$androidHome/emulator/emulator -avd ${avd.name}"
+        val result = terminal.run(cmd)
+        println(result.joinToString())
+    }
+
+    suspend fun killEmulator(adbDevice: AdbDevice) {
+        val cmd = "adb -s ${adbDevice.deviceId} emu kill"
+        val result = terminal.run(cmd)
+        println(result)
+    }
 }
 
 data class AdbWifiState(

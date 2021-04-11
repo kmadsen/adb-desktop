@@ -7,19 +7,12 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.min
 
-data class AdbDevice(
-    val deviceId: String,
-    val adbWifiState: AdbWifiState
-)
-
 class AdbDevicePoller(
     private val adb: Adb,
     private val coroutineScope: CoroutineScope
 ) {
     private val id = UUID.randomUUID()
-
-    private val maxDelay = 5000L
-    private var currentDelay = maxDelay
+    private var currentDelay = MAX_DELAY_MS
 
     private var callback: (List<AdbDevice>) -> Unit = { }
 
@@ -30,10 +23,19 @@ class AdbDevicePoller(
                 devices()
                 println("$id polling devices $currentDelay")
                 delay(currentDelay)
-                currentDelay = min((currentDelay * 1.50).toLong(), maxDelay)
+                currentDelay = min((currentDelay * 1.50).toLong(), MAX_DELAY_MS)
             }
             this@AdbDevicePoller.callback = { }
         }
+    }
+
+    fun request(callback: (List<AndroidVirtualDevice>) -> Unit) = coroutineScope.launch {
+        callback(adb.listAvds())
+    }
+
+    fun start(avd: AndroidVirtualDevice) = coroutineScope.launch {
+        adb.start(avd)
+        invalidate()
     }
 
     fun connect(adbDevice: AdbDevice) = coroutineScope.launch {
@@ -44,6 +46,11 @@ class AdbDevicePoller(
 
     fun disconnect(adbDevice: AdbDevice) = coroutineScope.launch {
         adb.disconnect(adbDevice)
+        invalidate()
+    }
+
+    fun killEmulator(adbDevice: AdbDevice) = coroutineScope.launch {
+        adb.killEmulator(adbDevice)
         invalidate()
     }
 
@@ -58,8 +65,12 @@ class AdbDevicePoller(
         }
     }
 
-    fun invalidate() {
+    private fun invalidate() {
         devices()
         currentDelay = 500L
+    }
+
+    companion object {
+        private const val MAX_DELAY_MS = 5000L
     }
 }

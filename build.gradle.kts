@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.compose") version "0.2.0-build132"
 }
 
-group = "me.travis"
+group = "com.kmadsen.adb-desktop"
 version = "1.0"
 
 repositories {

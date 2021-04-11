@@ -26,35 +26,63 @@ fun rememberAdbDeviceManager(): AdbDevicePoller {
 @Composable
 fun buildAppUI() {
     Column {
-        val adbDevicePoller = rememberAdbDeviceManager()
+        buildTopBar()
+        buildDrawerContent()
+    }
+}
 
-        TopAppBar(
-            title = { Text("adb desktop") }
+@Composable
+fun buildTopBar() {
+    TopAppBar(
+        title = { Text("adb desktop") }
+    )
+}
+
+@Composable
+fun buildDrawerContent() {
+    Row {
+        buildDrawer()
+        buildSurface()
+    }
+}
+
+@Composable
+fun buildDrawer() {
+    val adbDevicePoller = rememberAdbDeviceManager()
+
+    var connectedDevices by remember { mutableStateOf(emptyList<AdbDevice>()) }
+    adbDevicePoller.poll { freshDevices -> connectedDevices = freshDevices }
+    var androidVirtualDevices by remember { mutableStateOf(emptyList<AndroidVirtualDevice>())}
+    adbDevicePoller.request { freshAvds -> androidVirtualDevices = freshAvds }
+
+    ScrollableColumn(
+        modifier = Modifier
+            .width(300.dp)
+
+    ) {
+        Text(
+            text = "Connected devices",
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.CenterHorizontally)
         )
-        var refresh by remember { mutableStateOf(emptyList<AdbDevice>()) }
-        adbDevicePoller.poll {
-            refresh = it
+        connectedDevices.ifEmpty {
+            buildEmptyDeviceCard()
+            null
+        }?.forEach { deviceId ->
+            buildAdbDeviceCard(adbDevicePoller, deviceId)
         }
-
-        Row {
-            ScrollableColumn(
-                modifier = Modifier.width(400.dp)
-            ) {
-                Text(
-                    text = "Devices",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-                refresh.ifEmpty {
-                    buildEmptyDeviceCard()
-                    null
-                }?.forEach { deviceId ->
-                    buildAdbDeviceCard(adbDevicePoller, deviceId)
-                }
-            }
-
-            buildSurface()
+        Text(
+            text = "Emulator list",
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+        androidVirtualDevices.ifEmpty {
+            buildEmptyDeviceCard()
+            null
+        }?.forEach { avd ->
+            buildAvdCard(adbDevicePoller, avd)
         }
     }
 }
@@ -71,29 +99,24 @@ fun buildSurface() {
         border = BorderStroke(8.dp, Color.Black),
         elevation = 4.dp,
         content = {
-            buildCanvas()
+            Canvas(modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+            ) {
+                drawLine(
+                    color = Color.Black,
+                    start = Offset(0.0f, 0.0f),
+                    end = Offset(600f, 600f),
+                    strokeWidth = 50.0f,
+                    cap = StrokeCap.Butt,
+                    pathEffect = null,
+                    alpha = 1.0f,
+                    colorFilter = null,
+                    blendMode = BlendMode.Color
+                )
+            }
         }
     )
-}
-
-@Composable
-fun buildCanvas() {
-    Canvas(modifier = Modifier
-        .fillMaxSize()
-        .padding(8.dp)
-    ) {
-        drawLine(
-            color = Color.Black,
-            start = Offset(0.0f, 0.0f),
-            end = Offset(600f, 600f),
-            strokeWidth = 50.0f,
-            cap = StrokeCap.Butt,
-            pathEffect = null,
-            alpha = 1.0f,
-            colorFilter = null,
-            blendMode = BlendMode.Color
-        )
-    }
 }
 
 @Composable
@@ -107,7 +130,7 @@ fun buildEmptyDeviceCard() {
         Row(
             modifier = Modifier
                 .padding(start = 16.dp)
-                .height(50.dp),
+                .heightIn(50.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("No devices detected")
@@ -126,37 +149,85 @@ fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
         Row(
             modifier = Modifier
                 .padding(start = 16.dp)
-                .height(50.dp)
+                .heightIn(50.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            adbDeviceRow(adbDevicePoller, adbDevice)
+            buildDeviceRow(adbDevicePoller, adbDevice)
         }
     }
 }
 
 @Composable
-fun adbDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
+fun buildAvdCard(adbDevicePoller: AdbDevicePoller, avd: AndroidVirtualDevice) {
+    Card(
+        elevation = 4.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .heightIn(50.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            buildAdbDeviceCard(adbDevicePoller, avd)
+        }
+    }
+}
+
+@Composable
+fun buildDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
     Text(text = adbDevice.deviceId)
-    val wifiState = adbDevice.adbWifiState
+
     Column(
         horizontalAlignment = Alignment.End,
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
     ) {
-        if (wifiState.connected) {
-            Button(
-                onClick = { adbDevicePoller.disconnect(adbDevice) }
-            ) {
-                Text("disconnect wifi")
+        when {
+            adbDevice.isEmulator() -> {
+                Button(
+                    onClick = { adbDevicePoller.killEmulator(adbDevice) }
+                ) {
+                    Text("kill")
+                }
             }
-        } else if (wifiState.ipAddress != null) {
-            Button(
-                onClick = { adbDevicePoller.connect(adbDevice) }
-            ) {
-                Text("connect wifi")
+            adbDevice.adbWifiState.connected -> {
+                Button(
+                    onClick = { adbDevicePoller.disconnect(adbDevice) }
+                ) {
+                    Text("X wifi")
+                }
             }
+            adbDevice.adbWifiState.ipAddress != null -> {
+                Button(
+                    onClick = { adbDevicePoller.connect(adbDevice) }
+                ) {
+                    Text("O wifi")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun buildAdbDeviceCard(adbDevicePoller: AdbDevicePoller, avd: AndroidVirtualDevice) {
+    Text(text = avd.name)
+
+    Column(
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        Button(
+            onClick = { adbDevicePoller.start(avd) }
+        ) {
+            Text("start")
         }
     }
 }
