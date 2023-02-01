@@ -1,4 +1,4 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 data class AndroidVirtualDevice(
     val name: String

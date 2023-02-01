@@ -1,4 +1,4 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -45,7 +45,7 @@ class AdbDevicePoller(
     }
 
     fun disconnect(adbDevice: AdbDevice) = coroutineScope.launch {
-        adb.disconnect(adbDevice)
+        adb.disconnect(adbDevice.deviceId)
         invalidate()
     }
 

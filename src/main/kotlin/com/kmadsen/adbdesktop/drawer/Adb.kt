@@ -1,4 +1,4 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 class Adb(
     private val terminal: Terminal
@@ -22,7 +22,9 @@ class Adb(
         val result = terminal.run(cmd)
 
         val regex = """(.+)(device)""".toRegex()
-        check(result[0] == "List of devices attached")
+        if (result.firstOrNull() != "List of devices attached") {
+            return emptyList()
+        }
         return result
             .filter(String::isNotEmpty)
             .drop(1)
@@ -30,17 +32,8 @@ class Adb(
             .map { matchResult -> matchResult.groupValues[1].trim() }
     }
 
-    fun isConnected(deviceId: String): AdbWifiState? {
-        val regex = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)""".toRegex()
-        val matchResult = regex.find(deviceId)
-            ?: return null
-        val (ipAddress, port) = matchResult.destructured
-        return AdbWifiState(true, ipAddress, port)
-    }
-
     suspend fun wifiState(deviceId: String): AdbWifiState {
-        val checkConnected = isConnected(deviceId)
-        if (checkConnected != null) return checkConnected
+        deviceIdToAdbWifiState(deviceId)?.let { return it }
 
         val cmd = "adb -s $deviceId shell ip route"
         val result = terminal.run(cmd)
@@ -51,8 +44,16 @@ class Adb(
             .map { line -> regex.find(line)?.value }
             .firstOrNull()
             ?: return WIFI_UNAVAILABLE
+        val isConnected = deviceId.contains("adb-tls-connect")
+        return AdbWifiState(isConnected, ipAddress, null)
+    }
 
-        return AdbWifiState(false, ipAddress, null)
+    private fun deviceIdToAdbWifiState(deviceId: String): AdbWifiState? {
+        val regex = """(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)""".toRegex()
+        val matchResult = regex.find(deviceId)
+            ?: return null
+        val (ipAddress, port) = matchResult.destructured
+        return AdbWifiState(true, ipAddress, port)
     }
 
     suspend fun connect(deviceId: String, ipAddress: String): AdbWifiState {
@@ -69,32 +70,27 @@ class Adb(
         )
     }
 
-    suspend fun disconnect(adbDevice: AdbDevice) {
-        val address = "${adbDevice.adbWifiState.ipAddress}:${adbDevice.adbWifiState.port}"
-        val cmd = "adb disconnect $address"
-        val result = terminal.run(cmd)
-        println(result)
+    suspend fun disconnect(deviceId: String) {
+        val cmd = "adb disconnect $deviceId"
+        terminal.run(cmd)
     }
 
     suspend fun listAvds(): List<AndroidVirtualDevice> {
         val androidHome = System.getenv()["ANDROID_HOME"]
         val cmd = "$androidHome/emulator/emulator -list-avds"
         val result = terminal.run(cmd)
-        println(result.joinToString())
         return result.map { name -> AndroidVirtualDevice(name) }
     }
 
     suspend fun start(avd: AndroidVirtualDevice) {
         val androidHome = System.getenv()["ANDROID_HOME"]
         val cmd = "$androidHome/emulator/emulator -avd ${avd.name}"
-        val result = terminal.run(cmd)
-        println(result.joinToString())
+        terminal.run(cmd)
     }
 
     suspend fun killEmulator(adbDevice: AdbDevice) {
         val cmd = "adb -s ${adbDevice.deviceId} emu kill"
-        val result = terminal.run(cmd)
-        println(result)
+        terminal.run(cmd)
     }
 }
 

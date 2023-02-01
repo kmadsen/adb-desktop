@@ -1,8 +1,7 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -55,7 +54,7 @@ fun buildDrawer() {
     var androidVirtualDevices by remember { mutableStateOf(emptyList<AndroidVirtualDevice>())}
     adbDevicePoller.request { freshAvds -> androidVirtualDevices = freshAvds }
 
-    ScrollableColumn(
+    Column(
         modifier = Modifier
             .width(300.dp)
 
@@ -180,35 +179,38 @@ fun buildAvdCard(adbDevicePoller: AdbDevicePoller, avd: AndroidVirtualDevice) {
 
 @Composable
 fun buildDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
-    Text(text = adbDevice.deviceId)
-
+    println("buildDeviceRow $adbDevice")
+    Column(
+        modifier = Modifier.widthIn(max = 120.dp),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        Text(text = adbDevice.deviceId)
+        adbDevice.adbWifiState.ipAddress?.let { Text(text = it) }
+    }
     Column(
         horizontalAlignment = Alignment.End,
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
     ) {
-        when {
-            adbDevice.isEmulator() -> {
-                Button(
-                    onClick = { adbDevicePoller.killEmulator(adbDevice) }
-                ) {
-                    Text("kill")
-                }
+        if (adbDevice.isEmulator()) {
+            Button(
+                onClick = { adbDevicePoller.killEmulator(adbDevice) }
+            ) {
+                Text("kill")
             }
-            adbDevice.adbWifiState.connected -> {
-                Button(
-                    onClick = { adbDevicePoller.disconnect(adbDevice) }
-                ) {
-                    Text("X wifi")
-                }
+        }
+        if (adbDevice.adbWifiState.connected) {
+            Button(
+                onClick = { adbDevicePoller.disconnect(adbDevice) }
+            ) {
+                Text("disconnect")
             }
-            adbDevice.adbWifiState.ipAddress != null -> {
-                Button(
-                    onClick = { adbDevicePoller.connect(adbDevice) }
-                ) {
-                    Text("O wifi")
-                }
+        } else if (adbDevice.adbWifiState.ipAddress != null) {
+            Button(
+                onClick = { adbDevicePoller.connect(adbDevice) }
+            ) {
+                Text("connect wifi")
             }
         }
     }

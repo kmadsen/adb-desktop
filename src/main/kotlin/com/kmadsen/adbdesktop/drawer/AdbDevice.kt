@@ -1,4 +1,4 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 data class AdbDevice(
     val deviceId: String,

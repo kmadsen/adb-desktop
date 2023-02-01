@@ -1,15 +1,19 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 
 class Terminal {
-    private val runtime = Runtime.getRuntime()
+    private val runtime: Runtime = Runtime.getRuntime()
 
     suspend fun run(command: String): List<String> = withContext(Dispatchers.IO) {
+        println(
+            """EXECUTE ADB
+                    $command
+                """.trimIndent()
+        )
         val process = runtime.exec(command)
-
         fun InputStream.readLines() = bufferedReader()
             .readLines()
             .map { it.trim() }
@@ -20,6 +24,13 @@ class Terminal {
             emptyList()
         } else {
             process.inputStream.readLines()
+        }.also {
+            println(
+                """COMPLETED EXECUTE ADB
+                    $command
+                    $it
+                """.trimIndent()
+            )
         }
     }
 }

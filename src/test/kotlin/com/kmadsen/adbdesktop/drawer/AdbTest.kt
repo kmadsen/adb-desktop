@@ -1,4 +1,4 @@
-package com.adb.desktop
+package com.kmadsen.adbdesktop.drawer
 
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -10,8 +10,8 @@ import kotlin.test.assertTrue
 
 class AdbTest {
 
-    private val terminal = mockk<Terminal>()
-    private val adb = Adb(terminal)
+    private val terminal: Terminal = mockk()
+    private val adb: Adb = Adb(terminal)
 
     @Test
     fun `version should get the adb version`() = runBlocking {
@@ -41,7 +41,7 @@ class AdbTest {
     }
 
     @Test
-    fun `devices should be have all devices`() = runBlocking {
+    fun `devices should have all devices`() = runBlocking {
         val testOutput = listOf(
             "List of devices attached",
             "98281FFBA0088H    device",
@@ -100,16 +100,25 @@ class AdbTest {
     }
 
     @Test
-    fun `wifiState detects when wifi is connected`() = runBlocking {
+    fun `wifiState detects connected when device id is an ipAddress`() = runBlocking {
+        val result = adb.wifiState("192.168.1.4:5555")
+
+        assertTrue(result.connected)
+        assertEquals("192.168.1.4", result.ipAddress)
+        assertEquals("5555", result.port)
+    }
+
+    @Test
+    fun `wifiState detects connected when device id contains adb-tls-connect`() = runBlocking {
         val testOutput = listOf(
             "192.168.188.0/24 dev wlan0 proto kernel scope link src 192.168.188.150"
         )
         coEvery { terminal.run(any()) } returns testOutput
 
-        val result = adb.wifiState("192.168.188.150:5555")
+        val result = adb.wifiState("adb-98281FFBA0088H-6etzh2._adb-tls-connect._tcp")
 
         assertTrue(result.connected)
         assertEquals("192.168.188.150", result.ipAddress)
-        assertEquals("5555", result.port)
+        assertEquals(null, result.port)
     }
 }
