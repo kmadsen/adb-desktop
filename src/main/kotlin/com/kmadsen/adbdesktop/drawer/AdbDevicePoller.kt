@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 import kotlin.math.min
 
@@ -52,6 +53,10 @@ class AdbDevicePoller(
     fun killEmulator(adbDevice: AdbDevice) = coroutineScope.launch {
         adb.killEmulator(adbDevice)
         invalidate()
+    }
+
+    fun installAndRunApk(adbDevice: AdbDevice, apkFile: File) = coroutineScope.launch {
+        adb.installAndRunApk(adbDevice, apkFile)
     }
 
     private fun devices() = coroutineScope.launch {

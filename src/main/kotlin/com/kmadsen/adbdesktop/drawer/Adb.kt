@@ -1,5 +1,7 @@
 package com.kmadsen.adbdesktop.drawer
 
+import java.io.File
+
 class Adb(
     private val terminal: Terminal
 ) {
@@ -90,6 +92,31 @@ class Adb(
 
     suspend fun killEmulator(adbDevice: AdbDevice) {
         val cmd = "adb -s ${adbDevice.deviceId} emu kill"
+        terminal.run(cmd)
+    }
+
+    suspend fun installAndRunApk(adbDevice: AdbDevice, apkFile: File) {
+        val cmd = "adb -s ${adbDevice.deviceId} install -r ${apkFile.absolutePath}"
+        terminal.run(cmd)
+        val apkBadging = dumpApkBadging(apkFile)
+        val packageName = apkBadging
+            .filter { line -> line.contains("package: name=") }
+            .map { line -> line.split("'")[1] }
+            .firstOrNull()
+            ?: return
+        launchApk(packageName, adbDevice.deviceId)
+    }
+
+    // TODO this is a hack. I need to make it so you can select build tool versions, or just use the latest one
+    suspend fun dumpApkBadging(apkFile: File): List<String> {
+        val androidHome = System.getenv()["ANDROID_HOME"]
+        val buildToolsVersion = "33.0.1"
+        val cmd = "$androidHome/build-tools/$buildToolsVersion/aapt2 dump badging ${apkFile.absolutePath}"
+        return terminal.run(cmd)
+    }
+
+    suspend fun launchApk(packageName: String, deviceId: String) {
+        val cmd = "adb -s $deviceId shell monkey -p $packageName -c android.intent.category.LAUNCHER 1"
         terminal.run(cmd)
     }
 }

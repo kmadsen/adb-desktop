@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.8.0"
+    kotlin("plugin.serialization") version "1.8.0"
     id("org.jetbrains.compose") version "1.3.0"
 }
 
@@ -23,6 +24,10 @@ dependencies {
     testImplementation("com.google.truth:truth:1.1")
 
     implementation(compose.desktop.currentOs)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+    implementation("com.darkrockstudios:mpfilepicker:1.0.0")
 }
 
 tasks.test {

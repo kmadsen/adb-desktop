@@ -23,29 +23,6 @@ fun rememberAdbDeviceManager(): AdbDevicePoller {
 }
 
 @Composable
-fun buildAppUI() {
-    Column {
-        buildTopBar()
-        buildDrawerContent()
-    }
-}
-
-@Composable
-fun buildTopBar() {
-    TopAppBar(
-        title = { Text("adb desktop") }
-    )
-}
-
-@Composable
-fun buildDrawerContent() {
-    Row {
-        buildDrawer()
-        buildSurface()
-    }
-}
-
-@Composable
 fun buildDrawer() {
     val adbDevicePoller = rememberAdbDeviceManager()
 
@@ -55,9 +32,7 @@ fun buildDrawer() {
     adbDevicePoller.request { freshAvds -> androidVirtualDevices = freshAvds }
 
     Column(
-        modifier = Modifier
-            .width(300.dp)
-
+        modifier = Modifier.width(500.dp)
     ) {
         Text(
             text = "Connected devices",
@@ -105,7 +80,7 @@ fun buildSurface() {
                 drawLine(
                     color = Color.Black,
                     start = Offset(0.0f, 0.0f),
-                    end = Offset(600f, 600f),
+                    end = Offset(400f, 400f),
                     strokeWidth = 50.0f,
                     cap = StrokeCap.Butt,
                     pathEffect = null,
@@ -181,11 +156,12 @@ fun buildAvdCard(adbDevicePoller: AdbDevicePoller, avd: AndroidVirtualDevice) {
 fun buildDeviceRow(adbDevicePoller: AdbDevicePoller, adbDevice: AdbDevice) {
     println("buildDeviceRow $adbDevice")
     Column(
-        modifier = Modifier.widthIn(max = 120.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        Text(text = adbDevice.deviceId)
-        adbDevice.adbWifiState.ipAddress?.let { Text(text = it) }
+        Text(text = "DeviceId: ${adbDevice.deviceId}")
+        adbDevice.adbWifiState.ipAddress?.let { ipAddress ->
+            Text(text = "Ip Address: $ipAddress")
+        }
     }
     Column(
         horizontalAlignment = Alignment.End,
