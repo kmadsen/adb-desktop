@@ -1,10 +1,12 @@
 package com.kmadsen.adbdesktop.drawer
 
+import com.kmadsen.adbdesktop.env.Environment
 import java.io.File
 
 class Adb(
-    private val terminal: Terminal
+    private val terminal: Terminal,
 ) {
+
     suspend fun version(): String {
         val cmd = "adb --version"
         val result = terminal.run(cmd)
@@ -78,15 +80,13 @@ class Adb(
     }
 
     suspend fun listAvds(): List<AndroidVirtualDevice> {
-        val androidHome = System.getenv()["ANDROID_HOME"]
-        val cmd = "$androidHome/emulator/emulator -list-avds"
+        val cmd = "${Environment.ANDROID_HOME}/emulator/emulator -list-avds"
         val result = terminal.run(cmd)
         return result.map { name -> AndroidVirtualDevice(name) }
     }
 
     suspend fun start(avd: AndroidVirtualDevice) {
-        val androidHome = System.getenv()["ANDROID_HOME"]
-        val cmd = "$androidHome/emulator/emulator -avd ${avd.name}"
+        val cmd = "${Environment.ANDROID_HOME}/emulator/emulator -avd ${avd.name}"
         terminal.run(cmd)
     }
 
@@ -107,11 +107,10 @@ class Adb(
         launchApk(packageName, adbDevice.deviceId)
     }
 
-    // TODO this is a hack. I need to make it so you can select build tool versions, or just use the latest one
+    // TODO Need to make it so you can select build tool versions or use the latest one
     suspend fun dumpApkBadging(apkFile: File): List<String> {
-        val androidHome = System.getenv()["ANDROID_HOME"]
         val buildToolsVersion = "33.0.1"
-        val cmd = "$androidHome/build-tools/$buildToolsVersion/aapt2 dump badging ${apkFile.absolutePath}"
+        val cmd = "${Environment.ANDROID_HOME}/build-tools/$buildToolsVersion/aapt2 dump badging ${apkFile.absolutePath}"
         return terminal.run(cmd)
     }
 

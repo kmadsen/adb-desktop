@@ -5,31 +5,36 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 
 class Terminal {
-    private val runtime: Runtime = Runtime.getRuntime()
-
     suspend fun run(command: String): List<String> = withContext(Dispatchers.IO) {
+        if (command.isEmpty()) {
+            println("Command is null or empty.")
+            return@withContext emptyList()
+        }
+
         println(
             """EXECUTE ADB
-                    $command
-                """.trimIndent()
+            $command
+        """.trimIndent()
         )
-        val process = runtime.exec(command)
-        fun InputStream.readLines() = bufferedReader()
-            .readLines()
-            .map { it.trim() }
 
-        val errors = process.errorStream.readLines()
-        return@withContext if (errors.isNotEmpty()) {
+        val process = ProcessBuilder(*command.split(" ").toTypedArray())
+            .redirectErrorStream(true)
+            .start()
+
+        val output = process.inputStream.bufferedReader().readLines()
+        val errors = process.errorStream.bufferedReader().readLines()
+
+        if (errors.isNotEmpty()) {
             println("$command failed: $errors")
             emptyList()
         } else {
-            process.inputStream.readLines()
+            output
         }.also {
             println(
                 """COMPLETED EXECUTE ADB
-                    $command
-                    $it
-                """.trimIndent()
+                $command
+                $it
+            """.trimIndent()
             )
         }
     }
