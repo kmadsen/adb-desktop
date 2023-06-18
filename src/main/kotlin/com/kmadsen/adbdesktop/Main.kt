@@ -1,6 +1,5 @@
 package com.kmadsen.adbdesktop
 
-import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -14,8 +13,6 @@ fun main() = application {
         title = "Compose for Desktop",
         state = rememberWindowState(width = 1200.dp, height = 800.dp)
     ) {
-        MaterialTheme {
-            AppUi.buildApp()
-        }
+        MainScreen()
     }
 }

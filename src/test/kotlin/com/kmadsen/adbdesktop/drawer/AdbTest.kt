@@ -1,5 +1,7 @@
 package com.kmadsen.adbdesktop.drawer
 
+import com.kmadsen.adbdesktop.adb.Adb
+import com.kmadsen.adbdesktop.adb.Terminal
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking

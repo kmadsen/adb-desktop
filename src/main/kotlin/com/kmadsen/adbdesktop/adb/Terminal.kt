@@ -1,8 +1,7 @@
-package com.kmadsen.adbdesktop.drawer
+package com.kmadsen.adbdesktop.adb
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.InputStream
 
 class Terminal {
     suspend fun run(command: String): List<String> = withContext(Dispatchers.IO) {

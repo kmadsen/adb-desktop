@@ -24,6 +24,10 @@ dependencies {
     testImplementation("com.google.truth:truth:1.1")
 
     implementation(compose.desktop.currentOs)
+    implementation(compose.uiTooling)
+    implementation(compose.preview)
+    implementation(compose.material3)
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
