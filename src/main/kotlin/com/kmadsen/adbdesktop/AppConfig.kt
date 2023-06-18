@@ -1,6 +1,5 @@
 package com.kmadsen.adbdesktop
 
-import androidx.compose.ui.res.useResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

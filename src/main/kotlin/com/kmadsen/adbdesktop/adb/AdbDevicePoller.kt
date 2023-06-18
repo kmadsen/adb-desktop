@@ -1,4 +1,4 @@
-package com.kmadsen.adbdesktop.drawer
+package com.kmadsen.adbdesktop.adb
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay

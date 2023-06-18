@@ -1,4 +1,4 @@
-package com.kmadsen.adbdesktop.drawer
+package com.kmadsen.adbdesktop.adb
 
 import com.kmadsen.adbdesktop.env.Environment
 import java.io.File
@@ -80,7 +80,9 @@ class Adb(
     }
 
     suspend fun listAvds(): List<AndroidVirtualDevice> {
-        val cmd = "${Environment.ANDROID_HOME}/emulator/emulator -list-avds"
+        val androidHome = try { Environment.ANDROID_HOME } catch (tr: Throwable) { null }
+            ?: return emptyList()
+        val cmd = "$androidHome/emulator/emulator -list-avds"
         val result = terminal.run(cmd)
         return result.map { name -> AndroidVirtualDevice(name) }
     }
