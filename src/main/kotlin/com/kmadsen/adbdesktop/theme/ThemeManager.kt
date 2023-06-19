@@ -2,6 +2,9 @@ package com.kmadsen.adbdesktop.theme
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import com.kmadsen.adbdesktop.content.logcat.AdbLogcatLevel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -74,10 +77,36 @@ class ThemeManager {
         scrim = md_theme_dark_scrim,
     )
 
+
+    private val _isDarkTheme = MutableStateFlow(true)
+    val isDarkTheme = _isDarkTheme.asStateFlow()
+
     private val _theme = MutableStateFlow(lightColors)
     val theme = _theme.asStateFlow()
 
     fun setTheme(useDarkTheme: Boolean) {
         _theme.value = if (useDarkTheme) darkColors else lightColors
+    }
+
+    fun logLevelColor(adbLogcatLevel: AdbLogcatLevel): Color {
+        val lightColor = when (adbLogcatLevel) {
+            AdbLogcatLevel.Error -> Color(0xFFC62828)
+            AdbLogcatLevel.Warning -> Color(0xFFD84315)
+            AdbLogcatLevel.Info -> Color(0xFF1565C0)
+            AdbLogcatLevel.Debug -> Color(0xFF2E7D32)
+            AdbLogcatLevel.Verbose -> Color(0xFF616161)
+            AdbLogcatLevel.WhatIsF -> Color.Red
+        }
+
+        val darkColor = when (adbLogcatLevel) {
+            AdbLogcatLevel.Error -> Color(0xFFBA1A1A)
+            AdbLogcatLevel.Warning -> Color(0xFFE65100)
+            AdbLogcatLevel.Info -> Color(0xFF0D47A1)
+            AdbLogcatLevel.Debug -> Color(0xFF1B5E20)
+            AdbLogcatLevel.Verbose -> Color(0xFF424242)
+            AdbLogcatLevel.WhatIsF -> Color.Red
+        }
+
+        return if (_theme.value == lightColors) lightColor else darkColor
     }
 }

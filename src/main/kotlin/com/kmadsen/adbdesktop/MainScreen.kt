@@ -16,7 +16,7 @@ import com.kmadsen.adbdesktop.sidebar.SideBarNavigation
 @Composable
 fun MainScreen() {
     val appContext = AppContext()
-    val useDarkTheme: Boolean = isSystemInDarkTheme()
+    val useDarkTheme = !isSystemInDarkTheme()
     appContext.themeManager.setTheme(useDarkTheme)
     val colorScheme by appContext.themeManager.theme.collectAsState()
 
