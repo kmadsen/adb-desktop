@@ -1,6 +1,7 @@
 package com.kmadsen.adbdesktop.adb
 
 import com.kmadsen.adbdesktop.env.Environment
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 class Adb(
@@ -118,6 +119,16 @@ class Adb(
 
     suspend fun launchApk(packageName: String, deviceId: String) {
         val cmd = "adb -s $deviceId shell monkey -p $packageName -c android.intent.category.LAUNCHER 1"
+        terminal.run(cmd)
+    }
+
+    fun logcat(): Flow<String> {
+        val cmd = "adb logcat"
+        return terminal.connect(cmd)
+    }
+
+    suspend fun logcatClear() {
+        val cmd = "adb logcat -c"
         terminal.run(cmd)
     }
 }
